@@ -16,7 +16,7 @@ A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St O
 - The number turns orange when the next catchable train is close to the walk-time cutoff.
 - A train blinks at the station when it's boarding or leaving.
 - Open `tools/preview.html` in a browser for a live-data simulation of the panel.
-- A red pixel in the center means the last successful API fetch was over 2 minutes ago.
+- A red pixel in the top-left corner means the last successful API fetch was over 2 minutes ago.
 
 ## Hardware
 

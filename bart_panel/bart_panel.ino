@@ -163,19 +163,19 @@ static const uint8_t *glyph(char ch) {
   return nullptr;
 }
 
-// Draws text in the 3x5 font, each font pixel `scale` LEDs square.
-static void drawTiny(int x, int y, const char *s, uint16_t color, int scale = 1) {
-  for (; *s; s++, x += 4 * scale) {
+// Draws text in the 3x5 font, each font pixel sx by sy LEDs.
+static void drawTiny(int x, int y, const char *s, uint16_t color, int sx = 1, int sy = 1) {
+  for (; *s; s++, x += 4 * sx) {
     const uint8_t *g = glyph(*s);
     if (!g) continue;
     for (int r = 0; r < 5; r++)
       for (int c = 0; c < 3; c++)
-        if (g[r] & (4 >> c)) display->fillRect(x + c * scale, y + r * scale, scale, scale, color);
+        if (g[r] & (4 >> c)) display->fillRect(x + c * sx, y + r * sy, sx, sy, color);
   }
 }
 
-static int tinyWidth(const char *s, int scale) {
-  return (4 * (int)strlen(s) - 1) * scale;
+static int tinyWidth(const char *s, int sx) {
+  return (4 * (int)strlen(s) - 1) * sx;
 }
 
 static uint16_t scaled(uint32_t rgb, float k) {
@@ -241,13 +241,15 @@ static void drawLane(const Lane &lane, float elapsedMin, const LaneGeom &g, cons
     snprintf(buf, sizeof(buf), "%d", (int)next);
     col = next < WALK_MIN + 3 ? display->color565(255, 120, 0) : display->color565(0, 200, 60);
   }
-  const int numY = g.stationBottom ? PANEL_HEIGHT - 11 : 1;  // 10 rows tall at 2x
-  const int labelY = g.stationBottom ? numY - 7 : numY + 12;
-  auto textX = [&](const char *s, int sc) {
-    return g.textRight ? g.textEdge - tinyWidth(s, sc) + 1 : g.textEdge;
+  // Counter (2x, 10 rows) on the outer row next to the station; label (2x wide, 5 rows)
+  // directly inside it. EC label sits on rows 10-14, SF label on rows 17-21.
+  const int numY = g.stationBottom ? PANEL_HEIGHT - 10 : 0;
+  const int labelY = g.stationBottom ? numY - 5 : numY + 10;
+  auto textX = [&](const char *s, int sx) {
+    return g.textRight ? g.textEdge - tinyWidth(s, sx) + 1 : g.textEdge;
   };
-  drawTiny(textX(buf, 2), numY, buf, col, 2);
-  drawTiny(textX(label, 1), labelY, label, display->color565(120, 120, 120));
+  drawTiny(textX(buf, 2), numY, buf, col, 2, 2);
+  drawTiny(textX(label, 2), labelY, label, display->color565(120, 120, 120), 2, 1);
 }
 
 static void render() {
@@ -271,7 +273,7 @@ static void render() {
     drawLane(snap[LANE_SF], elapsed, SF_GEOM, "SF", now);
     drawLane(snap[LANE_EC], elapsed, EC_GEOM, "EC", now);
     if (now - at > STALE_MS) {
-      display->drawPixel(PANEL_WIDTH / 2, PANEL_HEIGHT / 2, display->color565(255, 0, 0));
+      display->drawPixel(0, 0, display->color565(255, 0, 0));
     }
   }
   display->flipDMABuffer();
