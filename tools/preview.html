@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>BART Panel Preview</title>
+<style>
+  body { background: #111; color: #aaa; font: 14px system-ui, sans-serif; margin: 24px; }
+  canvas { background: #000; image-rendering: pixelated; border: 1px solid #333; }
+  label { margin-right: 16px; }
+</style>
+</head>
+<body>
+<!-- Port of drawLane()/render() from bart_panel.ino, for checking layout without the hardware. -->
+<canvas id="c" width="32" height="32" style="width:384px;height:384px"></canvas>
+<p>
+  <label>Time warp <input id="warp" type="range" min="1" max="60" value="1"> <span id="warpv">1x</span></label>
+  <label>Walk min <input id="walk" type="number" min="0" max="15" value="4" style="width:3em"></label>
+</p>
+<p id="status"></p>
+<script>
+const W = 32, H = 32, PX_PER_MIN = 1.0;
+const SF_DESTS = ["SFIA", "MLBR", "DALY"], EC_DESTS = ["RICH"];
+const ctx = document.getElementById("c").getContext("2d");
+const img = ctx.createImageData(W, H);
+let lanes = [[], []], fetchedAt = 0, simStart = performance.now(), simOffset = 0;
+
+const G = {
+  "0": [7,5,5,5,7], "1": [2,6,2,2,7], "2": [7,1,7,4,7], "3": [7,1,7,1,7], "4": [5,5,7,1,1],
+  "5": [7,4,7,1,7], "6": [7,4,7,5,7], "7": [7,1,1,2,2], "8": [7,5,7,5,7], "9": [7,5,7,1,7],
+  S: [7,4,7,1,7], F: [7,4,6,4,4], E: [7,4,6,4,7], C: [7,4,4,4,7], "-": [0,0,7,0,0],
+};
+
+function px(x, y, [r, g, b]) {
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const i = (y * W + x) * 4;
+  img.data[i] = r; img.data[i + 1] = g; img.data[i + 2] = b; img.data[i + 3] = 255;
+}
+function tiny(x, y, s, col) {
+  for (const ch of s) {
+    const g = G[ch];
+    if (g) for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c)) px(x + c, y + r, col);
+    x += 4;
+  }
+}
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const scale = (rgb, k) => rgb.map(v => Math.round(v * k));
+
+const TRACK_START = 2;
+const SF_GEOM = { trackX: 13, tickX: 10, stationBottom: true, textRight: false };
+const EC_GEOM = { trackX: 18, tickX: 21, stationBottom: false, textRight: true };
+const alongToY = (a, g) => g.stationBottom ? H - 1 - a : a;
+
+function drawLane(lane, elapsed, g, label, now, walk) {
+  const walkPx = Math.floor(walk * PX_PER_MIN);
+  for (let x = g.trackX - 2; x <= g.trackX + 2; x++) px(x, alongToY(0, g), [200, 200, 200]);
+  for (let a = TRACK_START; a < H; a++) px(g.trackX, alongToY(a, g), a < TRACK_START + walkPx ? [40, 0, 0] : [20, 20, 20]);
+  for (let m = 5; TRACK_START + m * PX_PER_MIN < H; m += 5) px(g.tickX, alongToY(TRACK_START + Math.floor(m * PX_PER_MIN), g), [35, 35, 35]);
+
+  for (let i = lane.length - 1; i >= 0; i--) {
+    const t = lane[i];
+    const m = Math.max(0, t.minutes - elapsed);
+    if (m < 0.5 && Math.floor(now / 300) % 2) continue;
+    const a0 = TRACK_START + m * PX_PER_MIN;
+    const len = t.cars >= 8 ? 4 : t.cars >= 6 ? 3 : 2;
+    const k = m < walk ? 0.3 : 1;
+    for (let a = Math.floor(a0); a <= Math.floor(a0 + len) && a < H; a++) {
+      const cover = Math.min(a + 1, a0 + len) - Math.max(a, a0);
+      if (cover <= 0.05) continue;
+      for (let x = g.trackX - 1; x <= g.trackX + 1; x++) px(x, alongToY(a, g), scale(t.rgb, k * cover));
+    }
+  }
+
+  const next = lane.map(t => t.minutes - elapsed).find(m => m >= walk);
+  let s, col;
+  if (next === undefined || next >= 100) { s = "--"; col = [60, 60, 60]; }
+  else { s = String(Math.floor(next)); col = next < walk + 3 ? [255, 120, 0] : [0, 200, 60]; }
+  const nearY = g.stationBottom ? H - 6 : 1, farY = g.stationBottom ? 1 : H - 6;
+  const textX = str => g.textRight ? W - 4 * str.length + 1 : 1;
+  tiny(textX(s), nearY, s, col);
+  tiny(textX(label), farY, label, [120, 120, 120]);
+}
+function frame() {
+  const warp = +document.getElementById("warp").value;
+  document.getElementById("warpv").textContent = warp + "x";
+  const walk = +document.getElementById("walk").value;
+  const now = performance.now();
+  const elapsed = (now - fetchedAt) * warp / 60000;
+  img.data.fill(0);
+  for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+  drawLane(lanes[0], elapsed, SF_GEOM, "SF", now, walk);
+  drawLane(lanes[1], elapsed, EC_GEOM, "EC", now, walk);
+  ctx.putImageData(img, 0, 0);
+  requestAnimationFrame(frame);
+}
+
+function load(json) {
+  const fresh = [[], []];
+  for (const etd of json.root.station[0].etd) {
+    const lane = SF_DESTS.includes(etd.abbreviation) ? 0 : EC_DESTS.includes(etd.abbreviation) ? 1 : -1;
+    if (lane < 0) continue;
+    for (const e of etd.estimate) {
+      fresh[lane].push({ minutes: /^\d/.test(e.minutes) ? +e.minutes : 0, cars: +e.length, rgb: hex(e.hexcolor) });
+    }
+  }
+  fresh.forEach(l => l.sort((a, b) => a.minutes - b.minutes));
+  lanes = fresh; fetchedAt = performance.now();
+}
+
+async function poll() {
+  try {
+    const r = await fetch("https://api.bart.gov/api/etd.aspx?cmd=etd&orig=12TH&key=MW9S-E7SL-26DU-VV8V&json=y");
+    load(await r.json());
+    document.getElementById("status").textContent = "Live data, fetched " + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById("status").textContent = "Fetch failed: " + e;
+  }
+}
+poll(); setInterval(poll, 30000);
+frame();
+</script>
+</body>
+</html>
