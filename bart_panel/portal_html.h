@@ -320,11 +320,27 @@ static const char DEFAULT_TEMPLATE[] PROGMEM = R"WEB({
   "elements": [
     { "type": "track", "lane": "SF", "x": 2, "dir": "down", "tick": 3 },
     { "type": "track", "lane": "EC", "x": 29, "dir": "up", "tick": -3 },
-    { "type": "counter", "lane": "SF", "x": 7, "y": 22, "sx": 2, "sy": 2 },
-    { "type": "counter", "lane": "EC", "x": 24, "y": 0, "align": "right", "sx": 2, "sy": 2 },
-    { "type": "text", "text": "SF", "x": 7, "y": 16, "sx": 2, "sy": 1 },
-    { "type": "text", "text": "EC", "x": 24, "y": 11, "align": "right", "sx": 2, "sy": 1 },
-    { "type": "stale", "x": 0, "y": 0 }
+    { "type": "counter", "lane": "SF", "x": 6, "y": 22, "sx": 2, "sy": 2 },
+    { "type": "counter", "lane": "EC", "x": 25, "y": 0, "align": "right", "sx": 2, "sy": 2 },
+    { "type": "stale", "x": 0, "y": 0 },
+    {
+      "type": "sprite", "x": 8, "y": 11,
+      "palette": { "#": "#3c4652", "w": "#c89a50" },
+      "rows": [
+        "     #        ",
+        "    ###       ",
+        "  #######     ",
+        "  # # # #     ",
+        "   #####      ",
+        "   #w#w#      ",
+        "   ########## ",
+        "   #w#w##w#w# ",
+        "   ########## ",
+        "   ########## "
+      ]
+    },
+    { "type": "text", "text": "EC", "x": 4, "y": 0 },
+    { "type": "text", "text": "SF", "x": 27, "y": 27, "align": "right" }
   ]
 }
 )WEB";

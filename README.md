@@ -2,11 +2,11 @@
 
 A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St Oakland.
 
-```
- |  .     13   |    SF (left edge): trains move down into the station at the bottom.
- |  .     EC  ||    EC (right edge): trains move up into the station at the top.
- || SF        |    Big counters sit in the middle, each next to its own station.
- ||  7       .|
+```n |EC      13   |    EC (right edge): trains move up into the station at the top.
+ |  .    #     |    SF (left edge): trains move down into the station at the bottom.
+ |  .   ###    ||   The office building sits in the middle; each counter is next to
+ ||    #####   ||   its own station, with its lane label beside it.
+ ||  17      SF|
 ```
 
 - Left lane: SF-bound trains (destinations SFIA, MLBR, DALY). Right lane: El Cerrito-bound (RICH).
