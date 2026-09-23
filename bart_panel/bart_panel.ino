@@ -116,9 +116,8 @@ static bool fetchDepartures() {
 // Runs on core 0 so HTTP/TLS never stalls the animation.
 static void fetchTask(void *) {
   for (;;) {
-    if (WiFi.status() != WL_CONNECTED) {
-      WiFi.reconnect();
-      vTaskDelay(pdMS_TO_TICKS(5000));
+    if (WiFi.status() != WL_CONNECTED) {  // the stack auto-reconnects; just wait
+      vTaskDelay(pdMS_TO_TICKS(2000));
       continue;
     }
     fetchDepartures();
