@@ -34,6 +34,7 @@ struct LaneGeom {
   int tickX;           // column for 5-minute ticks
   bool stationBottom;  // true: station at the bottom, trains move down
   bool textRight;      // right-align counter and label
+  int textEdge;        // left edge (or right edge if textRight) of the text column
 };
 
 static MatrixPanel_I2S_DMA *display;
@@ -162,16 +163,19 @@ static const uint8_t *glyph(char ch) {
   return nullptr;
 }
 
-// Draws text in the 3x5 font; returns the x after the last glyph.
-static int drawTiny(int x, int y, const char *s, uint16_t color) {
-  for (; *s; s++, x += 4) {
+// Draws text in the 3x5 font, each font pixel `scale` LEDs square.
+static void drawTiny(int x, int y, const char *s, uint16_t color, int scale = 1) {
+  for (; *s; s++, x += 4 * scale) {
     const uint8_t *g = glyph(*s);
     if (!g) continue;
     for (int r = 0; r < 5; r++)
       for (int c = 0; c < 3; c++)
-        if (g[r] & (4 >> c)) display->drawPixel(x + c, y + r, color);
+        if (g[r] & (4 >> c)) display->fillRect(x + c * scale, y + r * scale, scale, scale, color);
   }
-  return x;
+}
+
+static int tinyWidth(const char *s, int scale) {
+  return (4 * (int)strlen(s) - 1) * scale;
 }
 
 static uint16_t scaled(uint32_t rgb, float k) {
@@ -179,10 +183,11 @@ static uint16_t scaled(uint32_t rgb, float k) {
 }
 
 // Vertical lanes. "along" is the distance from the station in pixels (0 = station bar).
-// SF runs down the left half into a station at the bottom; EC runs up the right half
-// into a station at the top. Counters sit next to their station, labels at the far end.
-static const LaneGeom SF_GEOM = {13, 10, true, false};
-static const LaneGeom EC_GEOM = {18, 21, false, true};
+// SF runs down the left edge into a station at the bottom; EC runs up the right edge
+// into a station at the top. The 2x counters sit in the middle next to their station,
+// with the lane label just inside them.
+static const LaneGeom SF_GEOM = {2, 5, true, false, 7};
+static const LaneGeom EC_GEOM = {29, 26, false, true, 24};
 
 static int alongToY(int a, const LaneGeom &g) {
   return g.stationBottom ? PANEL_HEIGHT - 1 - a : a;
@@ -236,11 +241,13 @@ static void drawLane(const Lane &lane, float elapsedMin, const LaneGeom &g, cons
     snprintf(buf, sizeof(buf), "%d", (int)next);
     col = next < WALK_MIN + 3 ? display->color565(255, 120, 0) : display->color565(0, 200, 60);
   }
-  const int nearY = g.stationBottom ? PANEL_HEIGHT - 6 : 1;
-  const int farY = g.stationBottom ? 1 : PANEL_HEIGHT - 6;
-  auto textX = [&](const char *s) { return g.textRight ? PANEL_WIDTH - 4 * (int)strlen(s) + 1 : 1; };
-  drawTiny(textX(buf), nearY, buf, col);
-  drawTiny(textX(label), farY, label, display->color565(120, 120, 120));
+  const int numY = g.stationBottom ? PANEL_HEIGHT - 11 : 1;  // 10 rows tall at 2x
+  const int labelY = g.stationBottom ? numY - 7 : numY + 12;
+  auto textX = [&](const char *s, int sc) {
+    return g.textRight ? g.textEdge - tinyWidth(s, sc) + 1 : g.textEdge;
+  };
+  drawTiny(textX(buf, 2), numY, buf, col, 2);
+  drawTiny(textX(label, 1), labelY, label, display->color565(120, 120, 120));
 }
 
 static void render() {
@@ -264,7 +271,7 @@ static void render() {
     drawLane(snap[LANE_SF], elapsed, SF_GEOM, "SF", now);
     drawLane(snap[LANE_EC], elapsed, EC_GEOM, "EC", now);
     if (now - at > STALE_MS) {
-      display->drawPixel(PANEL_WIDTH - 1, 0, display->color565(255, 0, 0));
+      display->drawPixel(PANEL_WIDTH / 2, PANEL_HEIGHT / 2, display->color565(255, 0, 0));
     }
   }
   display->flipDMABuffer();

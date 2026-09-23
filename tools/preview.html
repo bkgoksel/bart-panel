@@ -35,19 +35,21 @@ function px(x, y, [r, g, b]) {
   const i = (y * W + x) * 4;
   img.data[i] = r; img.data[i + 1] = g; img.data[i + 2] = b; img.data[i + 3] = 255;
 }
-function tiny(x, y, s, col) {
+function tiny(x, y, s, col, sc = 1) {
   for (const ch of s) {
     const g = G[ch];
-    if (g) for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c)) px(x + c, y + r, col);
-    x += 4;
+    if (g) for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c))
+      for (let dy = 0; dy < sc; dy++) for (let dx = 0; dx < sc; dx++) px(x + c * sc + dx, y + r * sc + dy, col);
+    x += 4 * sc;
   }
 }
+const tinyWidth = (s, sc) => (4 * s.length - 1) * sc;
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const scale = (rgb, k) => rgb.map(v => Math.round(v * k));
 
 const TRACK_START = 2;
-const SF_GEOM = { trackX: 13, tickX: 10, stationBottom: true, textRight: false };
-const EC_GEOM = { trackX: 18, tickX: 21, stationBottom: false, textRight: true };
+const SF_GEOM = { trackX: 2, tickX: 5, stationBottom: true, textRight: false, textEdge: 7 };
+const EC_GEOM = { trackX: 29, tickX: 26, stationBottom: false, textRight: true, textEdge: 24 };
 const alongToY = (a, g) => g.stationBottom ? H - 1 - a : a;
 
 function drawLane(lane, elapsed, g, label, now, walk) {
@@ -74,10 +76,10 @@ function drawLane(lane, elapsed, g, label, now, walk) {
   let s, col;
   if (next === undefined || next >= 100) { s = "--"; col = [60, 60, 60]; }
   else { s = String(Math.floor(next)); col = next < walk + 3 ? [255, 120, 0] : [0, 200, 60]; }
-  const nearY = g.stationBottom ? H - 6 : 1, farY = g.stationBottom ? 1 : H - 6;
-  const textX = str => g.textRight ? W - 4 * str.length + 1 : 1;
-  tiny(textX(s), nearY, s, col);
-  tiny(textX(label), farY, label, [120, 120, 120]);
+  const numY = g.stationBottom ? H - 11 : 1, labelY = g.stationBottom ? numY - 7 : numY + 12;
+  const textX = (str, sc) => g.textRight ? g.textEdge - tinyWidth(str, sc) + 1 : g.textEdge;
+  tiny(textX(s, 2), numY, s, col, 2);
+  tiny(textX(label, 1), labelY, label, [120, 120, 120]);
 }
 function frame() {
   const warp = +document.getElementById("warp").value;

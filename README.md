@@ -2,12 +2,10 @@
 
 A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St Oakland.
 
-```
- SF   |   .. 13      SF (left): trains move down into the station at the bottom.
-      .   |          EC (right): trains move up into the station at the top.
-      |   | .        Counters sit next to each lane's station.
-      |   |
- 7   ===  |   EC
+```n |  .     13   |    SF (left edge): trains move down into the station at the bottom.
+ |  .     EC  ||    EC (right edge): trains move up into the station at the top.
+ || SF        |    Big counters sit in the middle, each next to its own station.
+ ||  7       .|
 ```
 
 - Left lane: SF-bound trains (destinations SFIA, MLBR, DALY). Right lane: El Cerrito-bound (RICH).
@@ -18,7 +16,7 @@ A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St O
 - The number turns orange when the next catchable train is close to the walk-time cutoff.
 - A train blinks at the station when it's boarding or leaving.
 - Open `tools/preview.html` in a browser for a live-data simulation of the panel.
-- A red pixel in the top-right corner means the last successful API fetch was over 2 minutes ago.
+- A red pixel in the center means the last successful API fetch was over 2 minutes ago.
 
 ## Hardware
 
