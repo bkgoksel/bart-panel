@@ -1,10 +1,11 @@
 #pragma once
+// Build-time settings. Layout, station, lanes, walk time and brightness live in the
+// render template instead (web/default_template.json, editable from the web portal).
 
 // ---- Panel ----
 #define PANEL_WIDTH   32
 #define PANEL_HEIGHT  32
 #define PANEL_CHAIN   1
-#define BRIGHTNESS    60   // 0-255
 
 // HUB75 pins for Dave Elfving's LED_Art_Panel PCB
 // (github.com/DCElfving/LED_Art_Panel). B1/B2 are non-standard on this board.
@@ -24,17 +25,11 @@
 #define PIN_OE  14
 #define PIN_CLK 27
 
+// ---- Network ----
+#define HOSTNAME        "bart-panel"  // portal at http://bart-panel.local/
+#define WIFI_TIMEOUT_MS 15000         // per network, before falling back to the next one
+
 // ---- BART ----
-#define BART_STATION  "12TH"
 #define BART_API_KEY  "MW9S-E7SL-26DU-VV8V"   // BART's public demo key
 #define POLL_MS       30000
-#define WIFI_TIMEOUT_MS 15000  // per network, before falling back to the next one
-
-// Which destinations count for each lane (BART station abbreviations).
-static const char *const SF_DESTS[] = {"SFIA", "MLBR", "DALY"};
-static const char *const EC_DESTS[] = {"RICH"};
-
-// ---- Visualization ----
-#define PX_PER_MIN    1.0f // track scale; 30px of track at 1px/min = 30 min horizon
-#define WALK_MIN      4    // minutes from the office to the platform; trains closer than this are dimmed
-#define STALE_MS      120000  // show the error dot if no successful fetch for this long
+#define STALE_MS      120000  // "stale" elements light up after this long without a fetch
