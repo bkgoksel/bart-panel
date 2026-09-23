@@ -125,10 +125,12 @@ static String parseTemplate(const char *json, Template &t) {
       el.tick = e["tick"] | 0;
       el.f = e["pxPerMin"] | 1.0f;
       if (el.f <= 0) return "pxPerMin must be positive" + where;
-      el.c[0] = parseColor(e["color"], 0x141414);
-      el.c[1] = parseColor(e["walkColor"], 0x280000);
+      el.w = e["width"] | 1;
+      if (el.w < 1 || el.w > 5) return "width must be 1-5" + where;
+      el.c[0] = parseColor(e["color"], 0x404040);
+      el.c[1] = parseColor(e["walkColor"], 0x800000);
       el.c[2] = parseColor(e["stationColor"], 0xC8C8C8);
-      el.c[3] = parseColor(e["tickColor"], 0x232323);
+      el.c[3] = parseColor(e["tickColor"], 0x606060);
     } else if (!strcmp(type, "counter")) {
       el.type = EL_COUNTER;
       if (el.lane < 0) return "counter needs a lane" + where;

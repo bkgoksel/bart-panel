@@ -56,7 +56,7 @@ static const char PORTAL_HTML[] PROGMEM = R"WEB(<!doctype html>
     <code>lanes</code> (<code>[{id, dests: [abbr...]}]</code>, up to 4), <code>elements</code> (drawn in order, up to 32).</p>
   <table>
     <tr><td><code>track</code></td><td><code>lane, dir</code> (down/up/left/right, the way trains move), <code>x</code> for down/up or <code>y</code> for left/right,
-      <code>tick</code> (offset of 5-min ticks, 0 = none), <code>pxPerMin</code>, <code>color, walkColor, stationColor, tickColor</code></td></tr>
+      <code>tick</code> (offset of 5-min ticks, 0 = none), <code>pxPerMin</code>, <code>width</code> (1-5 px), <code>color, walkColor, stationColor, tickColor</code></td></tr>
     <tr><td><code>counter</code></td><td><code>lane, x, y, align, sx, sy, hurry</code> (minutes past walkMin that count as hurry), <code>color, hurryColor, noneColor</code></td></tr>
     <tr><td><code>text</code></td><td><code>text, x, y, align</code> (left/right/center), <code>sx, sy</code> (scale), <code>color</code>. 3x5 font: A-Z 0-9 - : .</td></tr>
     <tr><td><code>rect</code></td><td><code>x, y, w, h, color</code></td></tr>
@@ -134,7 +134,9 @@ function parseTemplate(t) {
         if (!["down", "up", "left", "right"].includes(el.dir)) throw "dir must be down, up, left or right" + where;
         el.tick = e.tick ?? 0; el.f = e.pxPerMin ?? 1;
         if (el.f <= 0) throw "pxPerMin must be positive" + where;
-        el.c = [color(e.color, 0x141414), color(e.walkColor, 0x280000), color(e.stationColor, 0xc8c8c8), color(e.tickColor, 0x232323)];
+        el.w = e.width ?? 1;
+        if (el.w < 1 || el.w > 5) throw "width must be 1-5" + where;
+        el.c = [color(e.color, 0x404040), color(e.walkColor, 0x800000), color(e.stationColor, 0xc8c8c8), color(e.tickColor, 0x606060)];
         break;
       case "counter":
         if (el.lane < 0) throw "counter needs a lane" + where;
@@ -184,7 +186,10 @@ function drawTrack(tpl, e, lane, elapsed, now) {
   const len = e.dir === "down" || e.dir === "up" ? H : W;
   const walkPx = Math.trunc(tpl.walkMin * e.f);
   for (let off = -2; off <= 2; off++) trackPixel(e, 0, off, rgbArr(e.c[2]));
-  for (let a = TRACK_START; a < len; a++) trackPixel(e, a, 0, rgbArr(a < TRACK_START + walkPx ? e.c[1] : e.c[0]));
+  for (let a = TRACK_START; a < len; a++) {
+    const c = rgbArr(a < TRACK_START + walkPx ? e.c[1] : e.c[0]);
+    for (let off = -Math.trunc((e.w - 1) / 2); off <= Math.trunc(e.w / 2); off++) trackPixel(e, a, off, c);
+  }
   if (e.tick) for (let m = 5; TRACK_START + m * e.f < len; m += 5) trackPixel(e, TRACK_START + Math.trunc(m * e.f), e.tick, rgbArr(e.c[3]));
   for (let i = lane.length - 1; i >= 0; i--) {
     const t = lane[i];
@@ -318,8 +323,8 @@ static const char DEFAULT_TEMPLATE[] PROGMEM = R"WEB({
     { "id": "EC", "dests": ["RICH"] }
   ],
   "elements": [
-    { "type": "track", "lane": "SF", "x": 29, "dir": "down", "tick": 2 },
-    { "type": "track", "lane": "EC", "x": 2, "dir": "up", "tick": -2 },
+    { "type": "track", "lane": "SF", "x": 29, "dir": "down", "tick": 2, "width": 3 },
+    { "type": "track", "lane": "EC", "x": 2, "dir": "up", "tick": -2, "width": 3 },
     { "type": "counter", "lane": "SF", "x": 5, "y": 22, "sx": 2, "sy": 2 },
     { "type": "counter", "lane": "EC", "x": 26, "y": 0, "align": "right", "sx": 2, "sy": 2 },
     { "type": "stale", "x": 31, "y": 0 },

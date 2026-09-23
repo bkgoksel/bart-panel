@@ -7,8 +7,8 @@
     { "id": "EC", "dests": ["RICH"] }
   ],
   "elements": [
-    { "type": "track", "lane": "SF", "x": 29, "dir": "down", "tick": 2 },
-    { "type": "track", "lane": "EC", "x": 2, "dir": "up", "tick": -2 },
+    { "type": "track", "lane": "SF", "x": 29, "dir": "down", "tick": 2, "width": 3 },
+    { "type": "track", "lane": "EC", "x": 2, "dir": "up", "tick": -2, "width": 3 },
     { "type": "counter", "lane": "SF", "x": 5, "y": 22, "sx": 2, "sy": 2 },
     { "type": "counter", "lane": "EC", "x": 26, "y": 0, "align": "right", "sx": 2, "sy": 2 },
     { "type": "stale", "x": 31, "y": 0 },

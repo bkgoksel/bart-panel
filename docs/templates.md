@@ -76,10 +76,11 @@ A track that trains travel along toward a station bar at one end.
 | `y`            | `0`         | Row of the track, for `left`/`right` |
 | `pxPerMin`     | `1`         | Scale: pixels per minute of arrival time |
 | `tick`         | `0`         | Offset (across the track) of the 5-minute tick marks. `0` = no ticks. Positive is right of a vertical track or below a horizontal one |
-| `color`        | `#141414`   | Track line |
-| `walkColor`    | `#280000`   | Track line within `walkMin` of the station ("too late" zone) |
+| `width`        | `1`         | Width of the track line, 1-5 px (trains are always 3 px wide) |
+| `color`        | `#404040`   | Track line |
+| `walkColor`    | `#800000`   | Track line within `walkMin` of the station ("too late" zone) |
 | `stationColor` | `#c8c8c8`   | Station bar |
-| `tickColor`    | `#232323`   | Tick marks |
+| `tickColor`    | `#606060`   | Tick marks |
 
 Geometry, measured along the track from the station end:
 

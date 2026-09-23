@@ -71,8 +71,10 @@ static void drawTrack(const Element &e, const Lane &lane, float elapsedMin, uint
 
   // Station bar, "too late" zone, track, 5-minute ticks
   for (int off = -2; off <= 2; off++) trackPixel(e, 0, off, rgb565(e.c[2]));
-  for (int a = TRACK_START; a < len; a++)
-    trackPixel(e, a, 0, rgb565(a < TRACK_START + walkPx ? e.c[1] : e.c[0]));
+  for (int a = TRACK_START; a < len; a++) {
+    uint16_t c = rgb565(a < TRACK_START + walkPx ? e.c[1] : e.c[0]);
+    for (int off = -(e.w - 1) / 2; off <= e.w / 2; off++) trackPixel(e, a, off, c);
+  }
   if (e.tick) {
     for (int m = 5; TRACK_START + m * e.f < len; m += 5)
       trackPixel(e, TRACK_START + (int)(m * e.f), e.tick, rgb565(e.c[3]));
