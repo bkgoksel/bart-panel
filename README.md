@@ -1,4 +1,4 @@
-﻿# bart-panel
+# bart-panel
 
 A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St Oakland.
 
@@ -31,7 +31,7 @@ A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St O
 Toolchain: Arduino CLI with the `esp32:esp32` core (3.3.12) and these libraries:
 ArduinoJson, Adafruit GFX Library, ESP32 HUB75 LED MATRIX PANEL DMA Display.
 
-1. Copy `bart_panel/secrets.h.example` to `bart_panel/secrets.h` and fill in the Wi-Fi credentials.
+1. Copy `bart_panel/secrets.h.example` to `bart_panel/secrets.h` and list the Wi-Fi networks to try, in order of preference. If none connect within 15 s each, it keeps cycling through them.
 2. Adjust `bart_panel/config.h` (walk time, brightness, pins).
 3. Build and flash:
 

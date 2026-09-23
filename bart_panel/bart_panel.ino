@@ -113,11 +113,30 @@ static bool fetchDepartures() {
   return true;
 }
 
-// Runs on core 0 so HTTP/TLS never stalls the animation.
+// Tries each network in secrets.h in order, giving each WIFI_TIMEOUT_MS.
+static bool connectWifi() {
+  for (auto &net : WIFI_NETWORKS) {
+    Serial.printf("Wi-Fi: trying %s\n", net[0]);
+    WiFi.disconnect();
+    WiFi.begin(net[0], net[1]);
+    uint32_t start = millis();
+    while (millis() - start < WIFI_TIMEOUT_MS) {
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.printf("Wi-Fi: connected to %s, %s\n", net[0], WiFi.localIP().toString().c_str());
+        return true;
+      }
+      vTaskDelay(pdMS_TO_TICKS(250));
+    }
+  }
+  Serial.println("Wi-Fi: no network available");
+  return false;
+}
+
+// Runs on core 0 so Wi-Fi and HTTP/TLS never stall the animation.
 static void fetchTask(void *) {
   for (;;) {
-    if (WiFi.status() != WL_CONNECTED) {  // the stack auto-reconnects; just wait
-      vTaskDelay(pdMS_TO_TICKS(2000));
+    if (WiFi.status() != WL_CONNECTED && !connectWifi()) {
+      vTaskDelay(pdMS_TO_TICKS(5000));
       continue;
     }
     fetchDepartures();
@@ -267,7 +286,7 @@ void setup() {
   display->clearScreen();
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.setAutoReconnect(false);  // connectWifi() handles fallback between networks
 
   xTaskCreatePinnedToCore(fetchTask, "fetch", 12288, nullptr, 1, nullptr, 0);
 }

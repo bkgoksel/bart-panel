@@ -27,6 +27,7 @@
 #define BART_STATION  "12TH"
 #define BART_API_KEY  "MW9S-E7SL-26DU-VV8V"   // BART's public demo key
 #define POLL_MS       30000
+#define WIFI_TIMEOUT_MS 15000  // per network, before falling back to the next one
 
 // Which destinations count for each lane (BART station abbreviations).
 static const char *const SF_DESTS[] = {"SFIA", "MLBR", "DALY"};
