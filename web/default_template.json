@@ -7,11 +7,11 @@
     { "id": "EC", "dests": ["RICH"] }
   ],
   "elements": [
-    { "type": "track", "lane": "SF", "x": 2, "dir": "down", "tick": 3 },
-    { "type": "track", "lane": "EC", "x": 29, "dir": "up", "tick": -3 },
-    { "type": "counter", "lane": "SF", "x": 6, "y": 22, "sx": 2, "sy": 2 },
-    { "type": "counter", "lane": "EC", "x": 25, "y": 0, "align": "right", "sx": 2, "sy": 2 },
-    { "type": "stale", "x": 0, "y": 0 },
+    { "type": "track", "lane": "SF", "x": 29, "dir": "down", "tick": 2 },
+    { "type": "track", "lane": "EC", "x": 2, "dir": "up", "tick": -2 },
+    { "type": "counter", "lane": "SF", "x": 5, "y": 22, "sx": 2, "sy": 2 },
+    { "type": "counter", "lane": "EC", "x": 26, "y": 0, "align": "right", "sx": 2, "sy": 2 },
+    { "type": "stale", "x": 31, "y": 0 },
     {
       "type": "sprite", "x": 8, "y": 11,
       "palette": { "#": "#3c4652", "w": "#c89a50" },
@@ -28,7 +28,7 @@
         "   ########## "
       ]
     },
-    { "type": "text", "text": "EC", "x": 4, "y": 0 },
+    { "type": "text", "text": "EC", "x": 5, "y": 0 },
     { "type": "text", "text": "SF", "x": 27, "y": 27, "align": "right" }
   ]
 }

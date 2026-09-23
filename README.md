@@ -3,21 +3,21 @@
 A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St Oakland.
 
 ```
- |EC      13   |    EC (right edge): trains move up into the station at the top.
- |  .    #     |    SF (left edge): trains move down into the station at the bottom.
- |  .   ###    ||   The office building sits in the middle; each counter is next to
- ||    #####   ||   its own station, with its lane label beside it.
- ||  17      SF|
+=EC      13   |    EC (left edge): trains move up into the station at the top.
+|  .    #     |.   SF (right edge): trains move down into the station at the bottom.
+||  .  ###    ||   Each lane label sits next to its own station. The office building
+||    #####   ||   is in the middle, with the counters above and below it.
+ |  17      SF=
 ```
 
-- Left lane: SF-bound trains (destinations SFIA, MLBR, DALY). Right lane: El Cerrito-bound (RICH).
+- Left lane: El Cerrito-bound trains (RICH). Right lane: SF-bound (destinations SFIA, MLBR, DALY).
 - Each train is a block in its line color (Red, Orange, Yellow). Length follows car count.
 - 1 px = 1 minute, so each track shows the next 30 minutes. Ticks every 5 minutes.
 - The first `walkMin` minutes of track are dim red. Trains in that zone are dimmed and don't count
   toward the number, since you can't walk there in time.
 - The number turns orange when the next catchable train is close to the walk-time cutoff.
 - A train blinks at the station when it's boarding or leaving.
-- A red pixel in the top-left corner means the last successful API fetch was over 2 minutes ago.
+- A red pixel in the top-right corner means the last successful API fetch was over 2 minutes ago.
 
 ## Web portal
 
