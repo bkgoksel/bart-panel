@@ -8,14 +8,27 @@
 #define MAX_DESTS    8
 #define MAX_ELEMENTS 32
 #define MAX_TEXT     16
+#define MAX_SPRITES  8
+#define MAX_PALETTE  8
+#define SPRITE_POOL  2048  // pixels across all sprites
 
-enum ElemType : uint8_t { EL_TRACK, EL_COUNTER, EL_TEXT, EL_RECT, EL_STALE };
+enum ElemType : uint8_t { EL_TRACK, EL_COUNTER, EL_TEXT, EL_RECT, EL_STALE, EL_SPRITE };
 enum Dir : uint8_t { DIR_DOWN, DIR_UP, DIR_LEFT, DIR_RIGHT };
 enum Align : uint8_t { AL_LEFT, AL_RIGHT, AL_CENTER };
+
+// Pixel art: rows of characters mapped to colors by a palette. Space and '.' are transparent.
+struct SpriteDef {
+  uint16_t offset;    // into Template::spritePixels
+  uint8_t w, h;
+  uint8_t palCount;
+  char keys[MAX_PALETTE];
+  uint32_t colors[MAX_PALETTE];
+};
 
 struct Element {
   ElemType type;
   int8_t lane;        // index into Template::lanes, -1 if unused
+  int8_t sprite;      // index into Template::sprites
   int16_t x, y, w, h;
   Dir dir;            // track: direction trains travel (toward the station)
   int8_t tick;        // track: offset of the 5-minute ticks from the track line, 0 = none
@@ -40,6 +53,10 @@ struct Template {
   uint8_t laneCount;
   Element elements[MAX_ELEMENTS];
   uint8_t elementCount;
+  SpriteDef sprites[MAX_SPRITES];
+  uint8_t spriteCount;
+  uint8_t spritePixels[SPRITE_POOL];  // 0 = transparent, else palette index + 1
+  uint16_t spritePixelsUsed;
 };
 
 static uint32_t parseColor(JsonVariantConst v, uint32_t def) {
@@ -129,6 +146,39 @@ static String parseTemplate(const char *json, Template &t) {
     } else if (!strcmp(type, "stale")) {
       el.type = EL_STALE;
       el.c[0] = parseColor(e["color"], 0xFF0000);
+    } else if (!strcmp(type, "sprite")) {
+      el.type = EL_SPRITE;
+      if (t.spriteCount >= MAX_SPRITES) return "too many sprites (max " + String(MAX_SPRITES) + ")";
+      SpriteDef &s = t.sprites[t.spriteCount];
+      for (JsonPairConst kv : e["palette"].as<JsonObjectConst>()) {
+        const char *k = kv.key().c_str();
+        if (strlen(k) != 1) return "palette keys must be single characters" + where;
+        if (s.palCount >= MAX_PALETTE) return "palette too big (max " + String(MAX_PALETTE) + ")" + where;
+        s.keys[s.palCount] = k[0];
+        s.colors[s.palCount++] = parseColor(kv.value(), 0xFFFFFF);
+      }
+      JsonArrayConst rows = e["rows"];
+      s.h = rows.size();
+      s.w = 0;
+      for (const char *row : rows) s.w = max<size_t>(s.w, row ? strlen(row) : 0);
+      if (s.h == 0 || s.h > 32 || s.w > 32) return "sprite needs 1-32 rows of up to 32 characters" + where;
+      if (t.spritePixelsUsed + s.w * s.h > SPRITE_POOL) return "sprites too large in total" + where;
+      s.offset = t.spritePixelsUsed;
+      for (int r = 0; r < s.h; r++) {
+        const char *row = rows[r] | "";
+        for (int c = 0; c < s.w; c++) {
+          char ch = c < (int)strlen(row) ? row[c] : ' ';
+          uint8_t v = 0;
+          if (ch != ' ' && ch != '.') {
+            for (int i = 0; i < s.palCount; i++)
+              if (s.keys[i] == ch) v = i + 1;
+            if (!v) return String("character '") + ch + "' not in palette" + where;
+          }
+          t.spritePixels[s.offset + r * s.w + c] = v;
+        }
+      }
+      t.spritePixelsUsed += s.w * s.h;
+      el.sprite = t.spriteCount++;
     } else {
       return String("unknown element type \"") + type + "\"" + where;
     }

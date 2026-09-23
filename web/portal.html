@@ -58,6 +58,7 @@
     <tr><td><code>counter</code></td><td><code>lane, x, y, align, sx, sy, hurry</code> (minutes past walkMin that count as hurry), <code>color, hurryColor, noneColor</code></td></tr>
     <tr><td><code>text</code></td><td><code>text, x, y, align</code> (left/right/center), <code>sx, sy</code> (scale), <code>color</code>. 3x5 font: A-Z 0-9 - : .</td></tr>
     <tr><td><code>rect</code></td><td><code>x, y, w, h, color</code></td></tr>
+    <tr><td><code>sprite</code></td><td><code>x, y, rows</code> (array of strings), <code>palette</code> (<code>{"#": "#5a6878", ...}</code>, single-character keys, up to 8). Space and <code>.</code> are transparent.</td></tr>
     <tr><td><code>stale</code></td><td><code>x, y, color</code>, one pixel lit when data is over 2 minutes old</td></tr>
   </table>
   <p>Colors are <code>"#rrggbb"</code>. Trains use their BART line color.</p>
@@ -117,6 +118,7 @@ function parseTemplate(t) {
   const lanes = (t.lanes || []).map(l => ({ id: l.id, dests: l.dests || [] }));
   if (lanes.length > 4) throw "too many lanes (max 4)";
   if (lanes.some(l => !l.id)) throw "lane without an id";
+  let sprites = 0, spriteCount = 0;
   const els = (t.elements || []).map((e, i) => {
     const where = ` (element ${i})`;
     const el = { ...e, x: e.x ?? 0, y: e.y ?? 0, w: e.w ?? 1, h: e.h ?? 1, sx: e.sx ?? 1, align: e.align || "left" };
@@ -140,6 +142,25 @@ function parseTemplate(t) {
       case "text": el.text = String(e.text ?? "").slice(0, 15); el.c = [color(e.color, 0x787878)]; break;
       case "rect": el.c = [color(e.color, 0xffffff)]; break;
       case "stale": el.c = [color(e.color, 0xff0000)]; break;
+      case "sprite": {
+        const pal = Object.entries(e.palette || {});
+        if (pal.some(([k]) => k.length !== 1)) throw "palette keys must be single characters" + where;
+        if (pal.length > 8) throw "palette too big (max 8)" + where;
+        const rows = e.rows || [];
+        const w = Math.max(0, ...rows.map(r => r.length));
+        if (!rows.length || rows.length > 32 || w > 32) throw "sprite needs 1-32 rows of up to 32 characters" + where;
+        el.px = [];
+        rows.forEach((row, r) => [...row.padEnd(w)].forEach((ch, c) => {
+          if (ch === " " || ch === ".") return;
+          const p = pal.find(([k]) => k === ch);
+          if (!p) throw `character '${ch}' not in palette` + where;
+          el.px.push([c, r, color(p[1], 0xffffff)]);
+        }));
+        sprites += w * rows.length;
+        if (++spriteCount > 8) throw "too many sprites (max 8)";
+        if (sprites > 2048) throw "sprites too large in total" + where;
+        break;
+      }
       default: throw `unknown element type "${e.type}"` + where;
     }
     return el;
@@ -212,6 +233,7 @@ function frame() {
         case "text": drawText(e.x, e.y, e.text, e.c[0], e.sx, e.sy, e.align); break;
         case "rect": fillRect(e.x, e.y, e.w, e.h, rgbArr(e.c[0])); break;
         case "stale": if (!data.ok || data.age + (now - dataAt) > STALE_MS) px(e.x, e.y, rgbArr(e.c[0])); break;
+        case "sprite": for (const [c, r, rgb] of e.px) px(e.x + c, e.y + r, rgbArr(rgb)); break;
       }
     }
     for (let i = 0; i < img.data.length; i += 4) for (let j = 0; j < 3; j++) img.data[i + j] *= k;

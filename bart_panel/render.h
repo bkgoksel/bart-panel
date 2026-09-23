@@ -116,6 +116,19 @@ static void drawCounter(const Element &e, const Lane &lane, float elapsedMin) {
   drawText(e.x, e.y, buf, col, e.sx, e.sy, e.align);
 }
 
+static void drawSprite(const Element &e) {
+  const SpriteDef &s = tpl.sprites[e.sprite];
+  uint16_t pal[MAX_PALETTE];
+  for (int i = 0; i < s.palCount; i++) pal[i] = rgb565(s.colors[i]);
+  for (int r = 0; r < s.h; r++) {
+    for (int c = 0; c < s.w; c++) {
+      uint8_t v = tpl.spritePixels[s.offset + r * s.w + c];
+      int x = e.x + c, y = e.y + r;
+      if (v && x >= 0 && y >= 0 && x < PANEL_WIDTH && y < PANEL_HEIGHT) display->drawPixel(x, y, pal[v - 1]);
+    }
+  }
+}
+
 static void render() {
   Lane snap[MAX_LANES];
   uint32_t at;
@@ -143,6 +156,7 @@ static void render() {
         case EL_STALE:
           if (now - at > STALE_MS) display->drawPixel(e.x, e.y, rgb565(e.c[0]));
           break;
+        case EL_SPRITE: drawSprite(e); break;
       }
     }
   }
