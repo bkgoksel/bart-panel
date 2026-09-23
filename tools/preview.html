@@ -76,7 +76,7 @@ function drawLane(lane, elapsed, g, label, now, walk) {
   let s, col;
   if (next === undefined || next >= 100) { s = "--"; col = [60, 60, 60]; }
   else { s = String(Math.floor(next)); col = next < walk + 3 ? [255, 120, 0] : [0, 200, 60]; }
-  const numY = g.stationBottom ? H - 10 : 0, labelY = g.stationBottom ? numY - 5 : numY + 10;
+  const numY = g.stationBottom ? H - 10 : 0, labelY = g.stationBottom ? numY - 6 : numY + 11;
   const textX = (str, sx) => g.textRight ? g.textEdge - tinyWidth(str, sx) + 1 : g.textEdge;
   tiny(textX(s, 2), numY, s, col, 2, 2);
   tiny(textX(label, 2), labelY, label, [120, 120, 120], 2, 1);

@@ -242,9 +242,9 @@ static void drawLane(const Lane &lane, float elapsedMin, const LaneGeom &g, cons
     col = next < WALK_MIN + 3 ? display->color565(255, 120, 0) : display->color565(0, 200, 60);
   }
   // Counter (2x, 10 rows) on the outer row next to the station; label (2x wide, 5 rows)
-  // directly inside it. EC label sits on rows 10-14, SF label on rows 17-21.
+  // one row inside it. EC label sits on rows 11-15, SF label on rows 16-20.
   const int numY = g.stationBottom ? PANEL_HEIGHT - 10 : 0;
-  const int labelY = g.stationBottom ? numY - 5 : numY + 10;
+  const int labelY = g.stationBottom ? numY - 6 : numY + 11;
   auto textX = [&](const char *s, int sx) {
     return g.textRight ? g.textEdge - tinyWidth(s, sx) + 1 : g.textEdge;
   };
