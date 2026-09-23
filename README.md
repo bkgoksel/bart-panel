@@ -27,8 +27,8 @@ same network.
 - **Render template.** Everything drawn on the panel, plus the station, lane destinations, walk time
   and brightness, comes from a JSON template. Edit it in the portal, check the live preview (it uses
   the panel's current train data), and press **Push to panel** (or Ctrl+Enter). The panel validates
-  it, saves it to flash and applies it immediately. The format is documented under "Template
-  reference" on the page; the default is [web/default_template.json](web/default_template.json).
+  it, saves it to flash and applies it immediately. The format is documented in
+  [docs/templates.md](docs/templates.md); the default is [web/default_template.json](web/default_template.json).
 - **Firmware.** Upload a compiled `.bin` from the portal, or from the command line (below).
 
 `PORTAL_PASS` in `secrets.h` protects template pushes, firmware uploads and network uploads
