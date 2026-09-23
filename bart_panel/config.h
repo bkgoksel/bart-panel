@@ -6,22 +6,23 @@
 #define PANEL_CHAIN   1
 #define BRIGHTNESS    60   // 0-255
 
-// HUB75 pins. Leave commented to use the library defaults
-// (R1=25 G1=26 B1=27 R2=14 G2=12 B2=13 A=23 B=19 C=5 D=17 E=-1 LAT=4 OE=15 CLK=16).
-// #define PIN_R1 25
-// #define PIN_G1 26
-// #define PIN_B1 27
-// #define PIN_R2 14
-// #define PIN_G2 12
-// #define PIN_B2 13
-// #define PIN_A  23
-// #define PIN_B  19
-// #define PIN_C  5
-// #define PIN_D  17
-// #define PIN_E  -1
-// #define PIN_LAT 4
-// #define PIN_OE  15
-// #define PIN_CLK 16
+// HUB75 pins for Dave Elfving's LED_Art_Panel PCB
+// (github.com/DCElfving/LED_Art_Panel). B1/B2 are non-standard on this board.
+// Comment these out to fall back to the library's default pin map.
+#define PIN_R1 18
+#define PIN_G1 21
+#define PIN_B1 4
+#define PIN_R2 32
+#define PIN_G2 19
+#define PIN_B2 33
+#define PIN_A  25
+#define PIN_B  5
+#define PIN_C  26
+#define PIN_D  17
+#define PIN_E  -1
+#define PIN_LAT 16
+#define PIN_OE  14
+#define PIN_CLK 27
 
 // ---- BART ----
 #define BART_STATION  "12TH"

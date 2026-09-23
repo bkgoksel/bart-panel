@@ -23,8 +23,8 @@ A 32x32 LED panel on an ESP32 that shows upcoming BART departures from 12th St O
 ## Hardware
 
 - ESP32-D0WD-V3 (4 MB flash) with a CP2102 USB-serial bridge, on COM6 on this machine.
-- 32x32 HUB75 RGB panel (assumed). Pins default to the ESP32-HUB75-MatrixPanel-DMA library
-  layout; override them in `bart_panel/config.h` if the board is wired differently.
+- 32x32 HUB75 RGB panel on Dave Elfving's LED_Art_Panel PCB (https://github.com/DCElfving/LED_Art_Panel).
+  That board uses a non-standard pin map, set in `bart_panel/config.h`.
 
 ## Setup
 
